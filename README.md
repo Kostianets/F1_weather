@@ -2,6 +2,9 @@
 
 Weather dashboard for the next Formula 1 race weekend: current conditions at the circuit, a forecast for every session, an animated weather map, hourly charts and a day-by-day outlook.
 
+## Link
+https://kostianets.github.io/F1_weather/
+
 ## Run it
 
 ```bash

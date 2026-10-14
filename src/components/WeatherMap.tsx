@@ -190,12 +190,14 @@ export default memo(function WeatherMap({ lat, lon, circuitId, tz, sessions }: P
   useEffect(() => {
     if (!el.current) return
     const m = L.map(el.current, { center: [lat, lon], zoom: 8, minZoom: 4, maxZoom: 15, zoomSnap: 0.5 })
-    // Stadia needs no key on localhost; a hosted copy is authorised by registering its domain with Stadia.
-    L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png', {
-      attribution:
-        '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    // Esri's Dark Gray Canvas needs no key or domain registration, so the hosted copy works as-is.
+    const esri = 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas'
+    L.tileLayer(`${esri}/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}`, {
+      attribution: 'Tiles &copy; <a href="https://www.esri.com">Esri</a> &mdash; Esri, HERE, Garmin, &copy; OpenStreetMap contributors',
+      maxNativeZoom: 16,
       maxZoom: 20,
     }).addTo(m)
+    L.tileLayer(`${esri}/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}`, { maxNativeZoom: 16, maxZoom: 20 }).addTo(m)
 
     m.createPane('track').style.zIndex = '460'
     const outline = circuitOutline(circuitId)

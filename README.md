@@ -23,7 +23,6 @@ The workflow in `.github/workflows/deploy.yml` lints, tests, builds and publishe
 1. Push the project to a GitHub repository with `main` as the default branch.
 2. In the repository, open **Settings → Pages** and set **Source** to **GitHub Actions**.
 3. Push to `main` (or run the workflow by hand from the **Actions** tab). The site appears at `https://<user>.github.io/<repo>/`.
-4. Create a free account at [Stadia Maps](https://client.stadiamaps.com/signup/), add a property, and register `<user>.github.io` as its domain. Without this the map background stays blank on the hosted site; everything else works. No key goes into the code.
 
 ## Where the data comes from
 
@@ -36,7 +35,7 @@ No API keys are needed.
 | Rain radar (observed, last 2 hours) | [RainViewer](https://www.rainviewer.com) |
 | Satellite cloud image | [EUMETSAT](https://www.eumetsat.int) |
 | Circuit outlines | [bacinger/f1-circuits](https://github.com/bacinger/f1-circuits) (MIT), in `src/data/circuits.json` |
-| Basemap | [Stadia Maps](https://stadiamaps.com) Alidade Smooth Dark |
+| Basemap | [Esri](https://www.esri.com) World Dark Gray Canvas |
 
 ## Things worth knowing
 
@@ -45,7 +44,7 @@ No API keys are needed.
 - The map's forecast layers (clouds, rain, temperature, wind, pressure) are drawn from a grid of forecast points around the circuit, so they only cover the region near the track.
 - Session lengths are assumed (the calendar only gives start times): 60 min for practice, qualifying and sprint, 45 min for sprint qualifying, 120 min for the race.
 - Every request gives up after a timeout and checks the response format. A panel that crashes shows a message with a retry button instead of taking the page down.
-- Open-Meteo and Stadia Maps are free for non-commercial use. Adding ads or payments means moving to their paid plans.
+- Open-Meteo and the Esri basemap are free for non-commercial use. Adding ads or payments means moving to their paid plans.
 - The bundled calendar and circuit outlines need refreshing by hand when a new season or circuit is added.
 
 Unofficial project, not associated with Formula 1.

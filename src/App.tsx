@@ -165,7 +165,7 @@ export default function App() {
         <p>
           Forecasts by <a href="https://open-meteo.com">Open-Meteo</a> · radar by <a href="https://www.rainviewer.com">RainViewer</a> · satellite by{' '}
           <a href="https://www.eumetsat.int">EUMETSAT</a> · calendar by <a href="https://github.com/jolpica/jolpica-f1">Jolpica F1</a> · circuit outlines by{' '}
-          <a href="https://github.com/bacinger/f1-circuits">bacinger/f1-circuits</a> · map by <a href="https://stadiamaps.com">Stadia Maps</a>
+          <a href="https://github.com/bacinger/f1-circuits">bacinger/f1-circuits</a> · map by <a href="https://www.esri.com">Esri</a>
         </p>
         <p>
           Track temperature and track state are estimates derived from forecast data, not measurements. Unofficial project, not associated with Formula 1.

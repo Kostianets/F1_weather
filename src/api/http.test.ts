@@ -19,9 +19,25 @@ describe('getJson', () => {
     await expect(getJson('https://example.test', 'The test service')).rejects.toThrow('The test service is unreachable')
   })
 
-  it('reports an HTTP error status', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse({}, 503)))
-    await expect(getJson('https://example.test', 'The test service')).rejects.toThrow('error 503')
+  it('reports an HTTP error status once retries run out', async () => {
+    const fetch = vi.fn().mockResolvedValue(jsonResponse({}, 503))
+    vi.stubGlobal('fetch', fetch)
+    await expect(getJson('https://example.test', 'The test service', undefined, [0, 0])).rejects.toThrow('error 503')
+    expect(fetch).toHaveBeenCalledTimes(3)
+  })
+
+  it('retries a temporary server error and returns the later success', async () => {
+    const fetch = vi.fn().mockResolvedValueOnce(jsonResponse({}, 503)).mockResolvedValueOnce(jsonResponse({ ok: 1 }))
+    vi.stubGlobal('fetch', fetch)
+    await expect(getJson('https://example.test', 'The test service', undefined, [0])).resolves.toEqual({ ok: 1 })
+    expect(fetch).toHaveBeenCalledTimes(2)
+  })
+
+  it('does not retry a request the service rejected outright', async () => {
+    const fetch = vi.fn().mockResolvedValue(jsonResponse({}, 400))
+    vi.stubGlobal('fetch', fetch)
+    await expect(getJson('https://example.test', 'The test service', undefined, [0])).rejects.toThrow('error 400')
+    expect(fetch).toHaveBeenCalledTimes(1)
   })
 })
 

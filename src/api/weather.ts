@@ -75,7 +75,8 @@ export async function getWeather(lat: number, lon: number): Promise<Weather> {
     past_days: '1', // lets the track model know about rain that already fell
     forecast_days: String(FORECAST_DAYS),
   })
-  const json = await getJson<any>(`${FORECAST}?${params}`, 'The weather service')
+  // Open-Meteo can take several seconds under load; the default 12 s is too tight for this big request.
+  const json = await getJson<any>(`${FORECAST}?${params}`, 'The weather service', 20_000)
   expect(Array.isArray(json?.hourly?.time) && Array.isArray(json?.daily?.time) && json?.current, 'The weather service')
 
   const h = json.hourly as Table

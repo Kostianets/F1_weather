@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import fallbackSeason from '../data/season-fallback.json'
 import { jsonResponse } from '../test/fixtures'
-import { getNextRace, pickNext, toRace } from './schedule'
+import { getNextRace, mergeNext, pickNext, toRace } from './schedule'
 import type { ApiRace } from './schedule'
 
 const season = fallbackSeason as ApiRace[]
@@ -16,7 +16,7 @@ describe('toRace', () => {
     expect(australia.sessions.map((s) => s.key)).toEqual(['fp1', 'fp2', 'fp3', 'quali', 'race'])
     expect(australia.lat).toBeCloseTo(-37.8497)
     expect(australia.sessions[4].start).toBe(Date.parse('2026-03-08T04:00:00Z'))
-    expect(australia.sessions[4].end - australia.sessions[4].start).toBe(120 * 60_000)
+    expect(australia.sessions[4].end - australia.sessions[4].start).toBe(180 * 60_000)
   })
 
   it('orders a sprint weekend by start time, not by field order', () => {
@@ -39,6 +39,11 @@ describe('pickNext', () => {
   it('keeps showing a race until its last session ends', () => {
     const duringRace = Date.parse('2026-10-25T21:00:00Z')
     expect(pickNext(races, duringRace)!.name).toBe('United States Grand Prix')
+  })
+
+  it('still shows a race that runs long after a delay', () => {
+    const race = races.find((r) => r.name === 'United States Grand Prix')!.sessions.at(-1)!
+    expect(pickNext(races, race.start + 150 * 60_000)!.name).toBe('United States Grand Prix')
   })
 
   it('returns nothing once the season is over', () => {
@@ -83,5 +88,29 @@ describe('getNextRace', () => {
     const next = await getNextRace(Date.parse('2027-01-01T00:00:00Z'))
     expect(next.race.name).toBe('Abu Dhabi Grand Prix')
     expect(next.finished).toBe(true)
+  })
+})
+
+describe('mergeNext', () => {
+  const now = Date.parse('2026-10-14T00:00:00Z')
+  const live = { race: pickNext(races, now)!, totalRounds: 23, source: 'live' as const, finished: false }
+
+  it('keeps the same object when the calendar did not change', () => {
+    expect(mergeNext(live, structuredClone(live))).toBe(live)
+  })
+
+  it('takes a rescheduled race', () => {
+    const moved = structuredClone(live)
+    moved.race.sessions.at(-1)!.start += 60 * 60_000
+    expect(mergeNext(live, moved)).toBe(moved)
+  })
+
+  it('keeps live data when a refresh falls back to the bundled calendar', () => {
+    expect(mergeNext(live, { ...live, source: 'bundled' })).toBe(live)
+  })
+
+  it('upgrades from the bundled calendar once the live one answers', () => {
+    const bundled = { ...live, source: 'bundled' as const }
+    expect(mergeNext(bundled, live)).toBe(live)
   })
 })

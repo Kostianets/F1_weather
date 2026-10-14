@@ -27,7 +27,9 @@ export interface ApiRace extends ApiSlot {
   Qualifying?: ApiSlot
 }
 
-// The API only gives start times; these are the scheduled slot lengths.
+// The API only gives start times; these are the assumed slot lengths. The race gets
+// the full 3-hour window the rules allow (suspensions included), so a delayed race
+// still counts as live instead of finishing on paper while cars are running.
 const SLOTS: { key: SessionKey; field: keyof ApiRace | null; name: string; short: string; minutes: number }[] = [
   { key: 'fp1', field: 'FirstPractice', name: 'Practice 1', short: 'FP1', minutes: 60 },
   { key: 'fp2', field: 'SecondPractice', name: 'Practice 2', short: 'FP2', minutes: 60 },
@@ -35,7 +37,7 @@ const SLOTS: { key: SessionKey; field: keyof ApiRace | null; name: string; short
   { key: 'sprintQuali', field: 'SprintQualifying', name: 'Sprint Qualifying', short: 'SQ', minutes: 45 },
   { key: 'sprint', field: 'Sprint', name: 'Sprint', short: 'SPR', minutes: 60 },
   { key: 'quali', field: 'Qualifying', name: 'Qualifying', short: 'Q', minutes: 60 },
-  { key: 'race', field: null, name: 'Race', short: 'RACE', minutes: 120 },
+  { key: 'race', field: null, name: 'Race', short: 'RACE', minutes: 180 },
 ]
 
 function slotStart(slot: ApiSlot): number {
@@ -116,4 +118,13 @@ export async function getNextRace(now = Date.now()): Promise<NextRace> {
       finished: !next,
     }
   }
+}
+
+// Picks what to show after a calendar refresh. Keeps the current object when nothing
+// changed, so effects keyed on the race don't refetch, and never trades a live
+// calendar for the bundled one because of a single failed refresh.
+export function mergeNext(prev: NextRace | null, fresh: NextRace): NextRace {
+  if (!prev) return fresh
+  if (prev.source === 'live' && fresh.source === 'bundled') return prev
+  return JSON.stringify(prev) === JSON.stringify(fresh) ? prev : fresh
 }

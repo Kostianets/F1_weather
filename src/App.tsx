@@ -1,5 +1,5 @@
 import { Suspense, lazy, useEffect, useMemo, useState } from 'react'
-import { getNextRace } from './api/schedule'
+import { getNextRace, mergeNext } from './api/schedule'
 import { getAirQuality, getWeather } from './api/weather'
 import Charts from './components/Charts'
 import Daily from './components/Daily'
@@ -43,8 +43,16 @@ export default function App() {
     return () => clearInterval(id)
   }, [])
 
+  // Re-read the calendar too, so rescheduled sessions show up without a reload.
   useEffect(() => {
-    getNextRace().then(setNext)
+    let cancelled = false
+    const load = () => getNextRace().then((fresh) => !cancelled && setNext((prev) => mergeNext(prev, fresh)))
+    load()
+    const id = setInterval(load, REFRESH)
+    return () => {
+      cancelled = true
+      clearInterval(id)
+    }
   }, [])
 
   const race = next?.race

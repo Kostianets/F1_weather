@@ -45,7 +45,7 @@ No API keys are needed.
 - **Track temperature and track state are estimates.** They are derived from air temperature, solar radiation, wind and rainfall in `src/lib/track.ts`; nothing measures the asphalt.
 - Forecasts reach 16 days ahead. Sessions further out show when their forecast will appear.
 - The map's forecast layers (clouds, rain, temperature, wind, pressure) are drawn from a grid of forecast points around the circuit, so they only cover the region near the track.
-- Session lengths are assumed (the calendar only gives start times): 60 min for practice, qualifying and sprint, 45 min for sprint qualifying, 120 min for the race.
+- Session lengths are assumed (the calendar only gives start times): 60 min for practice, qualifying and sprint, 45 min for sprint qualifying, and 3 hours for the race (the longest it may run, delays included). The calendar is re-read every 10 minutes, so rescheduled sessions appear without a reload; same-day delays are not in the calendar data.
 - Every request gives up after a timeout and checks the response format. A panel that crashes shows a message with a retry button instead of taking the page down.
 - Open-Meteo and the Esri basemap are free for non-commercial use. Adding ads or payments means moving to their paid plans.
 - The bundled calendar and circuit outlines need refreshing by hand when a new season or circuit is added.

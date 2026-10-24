@@ -20,7 +20,7 @@ CI (`.github/workflows/deploy.yml`) runs lint → test → build on every push t
 
 Single-page React 19 + TypeScript dashboard showing weather for the next F1 race weekend. No backend and no API keys: everything is fetched client-side from free public APIs (see the README table).
 
-**Data flow.** `src/App.tsx` owns all state: unit system (persisted in `localStorage` key `track-weather-units`), the next race, weather, air quality, error, and a `now` that ticks every 60 s. Weather and air quality reload every 10 min. Per-session forecasts (`sessionForecast`) are memoized in App and passed down. Components don't fetch, except `WeatherMap`, which loads its own radar and grid data.
+**Data flow.** `src/App.tsx` owns all state: unit system (persisted in `localStorage` key `track-weather-units`), the view (Forecast or Calendar, kept in the URL hash `#calendar`), the next race plus its full season (`NextRace.races`), weather, air quality, error, and a `now` that ticks every 60 s. Weather and air quality reload every 10 min. Per-session forecasts (`sessionForecast`) are memoized in App and passed down. Components don't fetch, except `WeatherMap`, which loads its own radar and grid data.
 
 **API layer (`src/api/`).**
 - `http.ts` `getJson(url, service, timeout, retryDelays)` is the single fetch wrapper. It uses `AbortSignal.timeout` and retries only on HTTP 429/502/503/504; network errors and timeouts are not retried. Its error messages are shown to users verbatim in App's banner. `expect(cond, service)` validates response shape. Every API response should pass through `expect` checks. The `retryDelays` parameter exists so tests can skip the waits.

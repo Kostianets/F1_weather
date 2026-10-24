@@ -57,7 +57,7 @@ describe('getNextRace', () => {
     const next = await getNextRace(Date.parse('2026-10-14T00:00:00Z'))
     expect(next.source).toBe('live')
     expect(next.race.name).toBe('United States Grand Prix')
-    expect(next.totalRounds).toBe(23)
+    expect(next.races).toHaveLength(23)
   })
 
   it('falls back to the bundled calendar when the service is down', async () => {
@@ -81,6 +81,7 @@ describe('getNextRace', () => {
     const next = await getNextRace(Date.parse('2027-01-01T00:00:00Z'))
     expect(next.race.season).toBe('2027')
     expect(next.finished).toBe(false)
+    expect(next.races.map((r) => r.season)).toEqual(['2027'])
   })
 
   it('shows the last race of the season when no next calendar exists yet', async () => {
@@ -93,7 +94,7 @@ describe('getNextRace', () => {
 
 describe('mergeNext', () => {
   const now = Date.parse('2026-10-14T00:00:00Z')
-  const live = { race: pickNext(races, now)!, totalRounds: 23, source: 'live' as const, finished: false }
+  const live = { race: pickNext(races, now)!, races, source: 'live' as const, finished: false }
 
   it('keeps the same object when the calendar did not change', () => {
     expect(mergeNext(live, structuredClone(live))).toBe(live)

@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen, waitFor, within } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
 import fallbackSeason from './data/season-fallback.json'
@@ -36,6 +36,7 @@ beforeEach(() => {
 afterEach(() => {
   cleanup()
   vi.unstubAllGlobals()
+  history.replaceState(null, '', location.pathname)
   vi.useRealTimers()
 })
 
@@ -63,6 +64,28 @@ describe('App', () => {
     const cards = await screen.findAllByRole('article')
     expect(cards.map((c) => c.querySelector('.session-short')!.textContent)).toEqual(['FP1', 'SQ', 'SPR', 'Q', 'RACE'])
     for (const card of cards) expect(await within(card).findByText('Track est.')).toBeTruthy()
+  })
+
+  it('switches to the season calendar and back', async () => {
+    vi.useFakeTimers({ toFake: ['Date'], now: Date.parse('2026-10-14T12:00:00Z') })
+    stubServices({ calendar: calendarDown })
+    render(<App />)
+    await screen.findByRole('heading', { level: 1 })
+    fireEvent.click(screen.getByRole('button', { name: 'Calendar' }))
+    expect(location.hash).toBe('#calendar')
+    expect(screen.getAllByRole('listitem')).toHaveLength(23)
+    expect(screen.queryByRole('heading', { level: 1 })).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Forecast' }))
+    expect(location.hash).toBe('')
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('United States Grand Prix')
+  })
+
+  it('opens straight on the calendar from a #calendar link', async () => {
+    history.replaceState(null, '', '#calendar')
+    vi.useFakeTimers({ toFake: ['Date'], now: Date.parse('2026-10-14T12:00:00Z') })
+    stubServices({ calendar: calendarDown })
+    render(<App />)
+    expect(await screen.findByRole('heading', { name: '2026 calendar' })).toBeTruthy()
   })
 
   it('re-reads the calendar so it recovers without a reload', async () => {

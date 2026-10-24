@@ -24,7 +24,8 @@ export interface Race {
 
 export interface NextRace {
   race: Race
-  totalRounds: number
+  /** the whole season the race belongs to, in round order */
+  races: Race[]
   source: 'live' | 'bundled'
   /** true when no upcoming race could be found and the last known one is shown */
   finished: boolean

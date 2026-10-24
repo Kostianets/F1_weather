@@ -1,6 +1,7 @@
 import { Suspense, lazy, useEffect, useMemo, useState } from 'react'
 import { getNextRace, mergeNext } from './api/schedule'
 import { getAirQuality, getWeather } from './api/weather'
+import Calendar from './components/Calendar'
 import Charts from './components/Charts'
 import Daily from './components/Daily'
 import Hero from './components/Hero'
@@ -21,6 +22,11 @@ const HOUR = 3_600_000
 const REFRESH = 10 * 60_000
 const UNITS_KEY = 'track-weather-units'
 
+type View = 'forecast' | 'calendar'
+
+// The view lives in the URL hash so the calendar can be linked and survives a reload.
+const viewFromHash = (): View => (location.hash === '#calendar' ? 'calendar' : 'forecast')
+
 function storedUnits(): UnitSystem {
   try {
     return localStorage.getItem(UNITS_KEY) === 'imperial' ? 'imperial' : 'metric'
@@ -37,10 +43,22 @@ export default function App() {
   const [air, setAir] = useState<AirQuality | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [now, setNow] = useState(Date.now)
+  const [view, setView] = useState<View>(viewFromHash)
 
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), 60_000)
     return () => clearInterval(id)
+  }, [])
+
+  // Back/forward and hand-edited URLs.
+  useEffect(() => {
+    const sync = () => setView(viewFromHash())
+    window.addEventListener('popstate', sync)
+    window.addEventListener('hashchange', sync)
+    return () => {
+      window.removeEventListener('popstate', sync)
+      window.removeEventListener('hashchange', sync)
+    }
   }, [])
 
   // Re-read the calendar too, so rescheduled sessions show up without a reload.
@@ -94,6 +112,12 @@ export default function App() {
     }
   }
 
+  const chooseView = (value: View) => {
+    if (value === view) return
+    history.pushState(null, '', value === 'calendar' ? '#calendar' : location.pathname + location.search)
+    setView(value)
+  }
+
   const nowHour = weather ? hourAt(weather.hours, now) : undefined
   const upcoming = weather ? weather.hours.filter((h) => h.t > now - HOUR && h.t <= now + 6 * HOUR) : []
   const tz = weather?.timezone
@@ -106,7 +130,15 @@ export default function App() {
           Track Weather
         </div>
         <div className="topbar-right">
-          {weather && <span className="updated">Updated {fmtTime(weather.fetchedAt)}</span>}
+          {weather && view === 'forecast' && <span className="updated">Updated {fmtTime(weather.fetchedAt)}</span>}
+          <div className="tabs" role="group" aria-label="View">
+            <button className={view === 'forecast' ? 'on' : ''} aria-pressed={view === 'forecast'} onClick={() => chooseView('forecast')}>
+              Forecast
+            </button>
+            <button className={view === 'calendar' ? 'on' : ''} aria-pressed={view === 'calendar'} onClick={() => chooseView('calendar')}>
+              Calendar
+            </button>
+          </div>
           <div className="tabs" role="group" aria-label="Units">
             <button className={system === 'metric' ? 'on' : ''} aria-pressed={system === 'metric'} onClick={() => chooseUnits('metric')}>
               °C · km/h
@@ -129,40 +161,48 @@ export default function App() {
               <div className="banner" role="status">
                 Live calendar is unreachable. Showing the bundled {race.season} schedule, which may be out of date.</div>
             )}
-            {error && (
-              <div className="banner error" role="alert">
-                Weather could not be loaded: {error}. Retrying automatically.
-              </div>
-            )}
-
-            <PanelBoundary name="race overview">
-              <Hero next={next} weather={weather} nowHour={nowHour} upcoming={upcoming} />
-            </PanelBoundary>
-            <PanelBoundary name="session forecast">
-              <Sessions sessions={race.sessions} forecasts={forecasts} tz={tz} now={now} loaded={weather != null} />
-            </PanelBoundary>
-            <PanelBoundary name="weather map">
-              <Suspense fallback={<div className="panel loading map-loading">Loading map…</div>}>
-                <WeatherMap lat={race.lat} lon={race.lon} circuitId={race.circuitId} tz={tz} sessions={race.sessions} />
-              </Suspense>
-            </PanelBoundary>
-
-            {weather && (
+            {view === 'calendar' ? (
+              <PanelBoundary name="calendar">
+                <Calendar next={next} now={now} />
+              </PanelBoundary>
+            ) : (
               <>
-                <div className="split">
-                  <PanelBoundary name="conditions">
-                    <Metrics weather={weather} nowHour={nowHour} air={air} />
-                  </PanelBoundary>
-                  <PanelBoundary name="wind">
-                    <WindCompass race={race} current={weather.current} forecasts={forecasts} />
-                  </PanelBoundary>
-                </div>
-                <PanelBoundary name="hourly charts">
-                  <Charts hours={weather.hours} sessions={race.sessions} tz={weather.timezone} now={now} />
+                {error && (
+                  <div className="banner error" role="alert">
+                    Weather could not be loaded: {error}. Retrying automatically.
+                  </div>
+                )}
+
+                <PanelBoundary name="race overview">
+                  <Hero next={next} weather={weather} nowHour={nowHour} upcoming={upcoming} />
                 </PanelBoundary>
-                <PanelBoundary name="days ahead">
-                  <Daily days={weather.days} sessions={race.sessions} tz={weather.timezone} now={now} />
+                <PanelBoundary name="session forecast">
+                  <Sessions sessions={race.sessions} forecasts={forecasts} tz={tz} now={now} loaded={weather != null} />
                 </PanelBoundary>
+                <PanelBoundary name="weather map">
+                  <Suspense fallback={<div className="panel loading map-loading">Loading map…</div>}>
+                    <WeatherMap lat={race.lat} lon={race.lon} circuitId={race.circuitId} tz={tz} sessions={race.sessions} />
+                  </Suspense>
+                </PanelBoundary>
+
+                {weather && (
+                  <>
+                    <div className="split">
+                      <PanelBoundary name="conditions">
+                        <Metrics weather={weather} nowHour={nowHour} air={air} />
+                      </PanelBoundary>
+                      <PanelBoundary name="wind">
+                        <WindCompass race={race} current={weather.current} forecasts={forecasts} />
+                      </PanelBoundary>
+                    </div>
+                    <PanelBoundary name="hourly charts">
+                      <Charts hours={weather.hours} sessions={race.sessions} tz={weather.timezone} now={now} />
+                    </PanelBoundary>
+                    <PanelBoundary name="days ahead">
+                      <Daily days={weather.days} sessions={race.sessions} tz={weather.timezone} now={now} />
+                    </PanelBoundary>
+                  </>
+                )}
               </>
             )}
           </>

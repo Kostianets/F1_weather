@@ -103,7 +103,7 @@ export async function getNextRace(now = Date.now()): Promise<NextRace> {
     if (races.length === 0) throw new Error('Schedule API returned no races')
     return {
       race: next ?? races[races.length - 1],
-      totalRounds: races.length,
+      races,
       source: 'live',
       finished: !next,
     }
@@ -113,7 +113,7 @@ export async function getNextRace(now = Date.now()): Promise<NextRace> {
     const next = pickNext(races, now)
     return {
       race: next ?? races[races.length - 1],
-      totalRounds: races.length,
+      races,
       source: 'bundled',
       finished: !next,
     }

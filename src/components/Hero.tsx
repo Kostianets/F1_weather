@@ -77,7 +77,7 @@ export default function Hero({ next, weather, nowHour, upcoming }: Props) {
     <section className="hero panel">
       <div className="hero-race">
         <div className="label">
-          Round {race.round} of {next.totalRounds} · {race.season}
+          Round {race.round} of {next.races.length} · {race.season}
           {next.finished && ' · season finished'}
         </div>
         <h1>{race.name}</h1>

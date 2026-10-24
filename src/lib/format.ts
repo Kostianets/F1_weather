@@ -20,6 +20,11 @@ export const fmtDay = (ms: number, tz?: string) => fmt(ms, tz, { weekday: 'short
 export const fmtWeekday = (ms: number, tz?: string) => fmt(ms, tz, { weekday: 'short' })
 export const fmtDayTime = (ms: number, tz?: string) => `${fmt(ms, tz, { weekday: 'short' })} ${fmtTime(ms, tz)}`
 
+/** Short zone name at that instant, e.g. "CET" or "GMT-5". */
+export function fmtZone(ms: number, tz?: string): string {
+  return formatter(tz, { timeZoneName: 'short' }).formatToParts(ms).find((p) => p.type === 'timeZoneName')?.value ?? ''
+}
+
 export function localHour(ms: number, tz?: string): number {
   return Number(fmt(ms, tz, { hour: 'numeric', hourCycle: 'h23' }))
 }

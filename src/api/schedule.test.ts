@@ -25,6 +25,12 @@ describe('toRace', () => {
     expect(china.sessions.find((s) => s.key === 'sprintQuali')!.end - china.sessions[1].start).toBe(45 * 60_000)
   })
 
+  it('knows the time zone of every circuit in the bundled season', () => {
+    expect(races[0].tz).toBe('Australia/Melbourne')
+    expect(races.filter((r) => !r.tz).map((r) => r.circuitId)).toEqual([])
+    expect(toRace({ ...season[0], Circuit: { ...season[0].Circuit, circuitId: 'nowhere' } }).tz).toBeNull()
+  })
+
   it('assumes midday UTC when a session has no time', () => {
     const race = toRace({ ...season[0], time: undefined })
     expect(race.sessions.at(-1)!.start).toBe(Date.parse('2026-03-08T12:00:00Z'))

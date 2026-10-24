@@ -1,8 +1,9 @@
+import timezones from '../data/circuit-timezones.json'
 import fallbackSeason from '../data/season-fallback.json'
 import { expect, getJson } from './http'
 import type { NextRace, Race, Session, SessionKey } from '../types'
 
-const API = 'https://api.jolpi.ca/ergast/f1'
+export const API = 'https://api.jolpi.ca/ergast/f1'
 const MIN = 60_000
 
 interface ApiSlot {
@@ -64,6 +65,7 @@ export function toRace(r: ApiRace): Race {
     country: r.Circuit.Location.country,
     lat: Number(r.Circuit.Location.lat),
     lon: Number(r.Circuit.Location.long),
+    tz: (timezones as Record<string, string>)[r.Circuit.circuitId] ?? null,
     sessions,
   }
 }

@@ -19,7 +19,43 @@ export interface Race {
   country: string
   lat: number
   lon: number
+  /** IANA zone of the circuit, or null when the circuit isn't in circuit-timezones.json */
+  tz: string | null
   sessions: Session[]
+}
+
+export interface Driver {
+  code: string
+  name: string
+  team: string
+}
+
+/** One line of a race or sprint classification. */
+export interface RaceResult extends Driver {
+  /** classified position, or R (retired), D (disqualified), W (withdrawn), N (not classified) */
+  pos: string
+  /** starting slot; null for a pit lane start */
+  grid: number | null
+  /** places gained from the grid; null when not classified or starting from the pit lane */
+  gained: number | null
+  /** winner's time, gap to the winner, or the reason for not finishing */
+  result: string
+  points: number
+  fastestLap: boolean
+}
+
+export interface QualiResult extends Driver {
+  pos: number
+  q1: string | null
+  q2: string | null
+  q3: string | null
+}
+
+/** A round's classifications; null where that session hasn't run or doesn't exist. */
+export interface RoundResults {
+  race: RaceResult[] | null
+  sprint: RaceResult[] | null
+  quali: QualiResult[] | null
 }
 
 export interface NextRace {

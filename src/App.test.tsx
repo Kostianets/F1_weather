@@ -88,6 +88,15 @@ describe('App', () => {
     expect(await screen.findByRole('heading', { name: '2026 calendar' })).toBeTruthy()
   })
 
+  it('opens the drivers\' standings from a #standings link', async () => {
+    history.replaceState(null, '', '#standings')
+    vi.useFakeTimers({ toFake: ['Date'], now: Date.parse('2026-10-14T12:00:00Z') })
+    stubServices({ calendar: calendarDown })
+    render(<App />)
+    expect(await screen.findByRole('heading', { name: "2026 drivers' championship" })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Standings' }).getAttribute('aria-pressed')).toBe('true')
+  })
+
   it('re-reads the calendar so it recovers without a reload', async () => {
     vi.useFakeTimers({ toFake: ['Date', 'setInterval', 'clearInterval'], now: Date.parse('2026-10-14T12:00:00Z') })
     let calendar: () => Promise<Response> = calendarDown

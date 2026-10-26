@@ -58,6 +58,18 @@ export interface RoundResults {
   quali: QualiResult[] | null
 }
 
+export interface DriverStanding extends Driver {
+  pos: number
+  points: number
+  wins: number
+}
+
+/** The drivers' championship as it stood after `round`. */
+export interface DriverStandings {
+  round: number
+  drivers: DriverStanding[]
+}
+
 export interface NextRace {
   race: Race
   /** the whole season the race belongs to, in round order */

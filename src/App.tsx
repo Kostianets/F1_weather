@@ -7,6 +7,7 @@ import Daily from './components/Daily'
 import Hero from './components/Hero'
 import Metrics from './components/Metrics'
 import Sessions from './components/Sessions'
+import Standings from './components/Standings'
 import PanelBoundary from './components/PanelBoundary'
 import WindCompass from './components/WindCompass'
 import { fmtTime } from './lib/format'
@@ -22,10 +23,16 @@ const HOUR = 3_600_000
 const REFRESH = 10 * 60_000
 const UNITS_KEY = 'track-weather-units'
 
-type View = 'forecast' | 'calendar'
+type View = 'forecast' | 'calendar' | 'standings'
 
-// The view lives in the URL hash so the calendar can be linked and survives a reload.
-const viewFromHash = (): View => (location.hash === '#calendar' ? 'calendar' : 'forecast')
+const VIEWS: { key: View; label: string }[] = [
+  { key: 'forecast', label: 'Forecast' },
+  { key: 'calendar', label: 'Calendar' },
+  { key: 'standings', label: 'Standings' },
+]
+
+// The view lives in the URL hash so each one can be linked and survives a reload.
+const viewFromHash = (): View => VIEWS.find((v) => v.key !== 'forecast' && location.hash === `#${v.key}`)?.key ?? 'forecast'
 
 function storedUnits(): UnitSystem {
   try {
@@ -114,7 +121,7 @@ export default function App() {
 
   const chooseView = (value: View) => {
     if (value === view) return
-    history.pushState(null, '', value === 'calendar' ? '#calendar' : location.pathname + location.search)
+    history.pushState(null, '', value === 'forecast' ? location.pathname + location.search : `#${value}`)
     setView(value)
   }
 
@@ -132,12 +139,11 @@ export default function App() {
         <div className="topbar-right">
           {weather && view === 'forecast' && <span className="updated">Updated {fmtTime(weather.fetchedAt)}</span>}
           <div className="tabs" role="group" aria-label="View">
-            <button className={view === 'forecast' ? 'on' : ''} aria-pressed={view === 'forecast'} onClick={() => chooseView('forecast')}>
-              Forecast
-            </button>
-            <button className={view === 'calendar' ? 'on' : ''} aria-pressed={view === 'calendar'} onClick={() => chooseView('calendar')}>
-              Calendar
-            </button>
+            {VIEWS.map((v) => (
+              <button key={v.key} className={view === v.key ? 'on' : ''} aria-pressed={view === v.key} onClick={() => chooseView(v.key)}>
+                {v.label}
+              </button>
+            ))}
           </div>
           <div className="tabs" role="group" aria-label="Units">
             <button className={system === 'metric' ? 'on' : ''} aria-pressed={system === 'metric'} onClick={() => chooseUnits('metric')}>
@@ -164,6 +170,10 @@ export default function App() {
             {view === 'calendar' ? (
               <PanelBoundary name="calendar">
                 <Calendar next={next} now={now} />
+              </PanelBoundary>
+            ) : view === 'standings' ? (
+              <PanelBoundary name="standings">
+                <Standings next={next} now={now} />
               </PanelBoundary>
             ) : (
               <>
@@ -212,7 +222,7 @@ export default function App() {
       <footer>
         <p>
           Forecasts by <a href="https://open-meteo.com">Open-Meteo</a> · radar by <a href="https://www.rainviewer.com">RainViewer</a> · satellite by{' '}
-          <a href="https://www.eumetsat.int">EUMETSAT</a> · calendar by <a href="https://github.com/jolpica/jolpica-f1">Jolpica F1</a> · circuit outlines by{' '}
+          <a href="https://www.eumetsat.int">EUMETSAT</a> · calendar and standings by <a href="https://github.com/jolpica/jolpica-f1">Jolpica F1</a> · circuit outlines by{' '}
           <a href="https://github.com/bacinger/f1-circuits">bacinger/f1-circuits</a> · map by <a href="https://www.esri.com">Esri</a>
         </p>
         <p>

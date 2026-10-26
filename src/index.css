@@ -456,6 +456,32 @@ main > *,
   color: var(--red-soft);
 }
 
+/* Drivers' championship */
+.standings {
+  padding: 8px 8px;
+  overflow-x: auto;
+}
+
+.standings .results-state {
+  padding: 8px;
+}
+
+.standings-table tr.out td {
+  color: var(--muted);
+}
+
+.chip.state-contender {
+  color: var(--green);
+  border-color: #1d5c3a;
+  background: #0d2418;
+}
+
+.chip.state-champion {
+  color: var(--amber);
+  border-color: #6b4c10;
+  background: #2a1f08;
+}
+
 /* Hero */
 .hero {
   display: grid;
@@ -1202,6 +1228,11 @@ footer {
   .topbar-right {
     width: 100%;
     justify-content: space-between;
+    gap: 8px;
+  }
+
+  .topbar-right .tabs button {
+    padding: 5px 7px;
   }
 
   .hero-race,

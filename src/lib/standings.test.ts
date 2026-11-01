@@ -3,7 +3,7 @@ import { toRace } from '../api/schedule'
 import type { ApiRace } from '../api/schedule'
 import fallbackSeason from '../data/season-fallback.json'
 import type { DriverStanding } from '../types'
-import { contenders, pointsLeft } from './standings'
+import { TEAM_MAX, contenders, pointsLeft } from './standings'
 
 const races = (fallbackSeason as ApiRace[]).map(toRace)
 const sprintRounds = races.filter((r) => r.sessions.some((s) => s.key === 'sprint')).map((r) => r.round)
@@ -25,20 +25,27 @@ describe('pointsLeft', () => {
     expect(afterSprint - pointsLeft(races, round, raceEnd(round) + 1)).toBe(25)
   })
 
+  it('counts a one-two for a team', () => {
+    const last = races.length
+    const sprints = sprintRounds.includes(last) ? 1 : 0
+    expect(pointsLeft(races, last - 1, raceEnd(last - 1) + 1, TEAM_MAX)).toBe(43 + sprints * 15)
+  })
+
   it('leaves nothing once the final race has ended', () => {
     expect(pointsLeft(races, races.length, raceEnd(races.length) + 1)).toBe(0)
   })
 })
 
 describe('contenders', () => {
+  const codes = (set: Set<DriverStanding>) => [...set].map((d) => d.code)
   const drivers = [driver('ANT', 365), driver('RUS', 242), driver('HAM', 241), driver('LEC', 200)]
 
   it('keeps everyone who can still reach the leader, a tie included', () => {
-    expect([...contenders(drivers, 124)]).toEqual(['ANT', 'RUS', 'HAM'])
-    expect([...contenders(drivers, 123)]).toEqual(['ANT', 'RUS'])
+    expect(codes(contenders(drivers, 124))).toEqual(['ANT', 'RUS', 'HAM'])
+    expect(codes(contenders(drivers, 123))).toEqual(['ANT', 'RUS'])
   })
 
   it('leaves only the champion once the gap is out of reach', () => {
-    expect([...contenders(drivers, 122)]).toEqual(['ANT'])
+    expect(codes(contenders(drivers, 122))).toEqual(['ANT'])
   })
 })

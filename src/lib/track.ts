@@ -66,18 +66,21 @@ export function sessionForecast(hours: Hour[], session: Session): SessionForecas
   const from = Math.floor(session.start / HOUR) * HOUR
   const slice = hours.filter((h) => h.t >= from && h.t < session.end && h.temp != null)
   if (slice.length === 0) return null
-  const worst = slice.reduce((a, b) => (STATE_RANK[b.trackState] > STATE_RANK[a.trackState] ? b : a))
+  // Open-Meteo rain, rain chance, weather code and gusts describe the hour *before* each timestamp.
+  const before = hours.filter((h) => h.t > session.start && h.t - HOUR < session.end && h.temp != null)
+  const past = before.length ? before : slice // session ends in the last forecast hour
+  const worst = past.reduce((a, b) => (STATE_RANK[b.trackState] > STATE_RANK[a.trackState] ? b : a))
   return {
     temp: mean(slice.map((h) => h.temp))!,
     trackTemp: mean(slice.map((h) => h.trackTemp)),
-    pop: max(slice.map((h) => h.pop)),
-    precip: slice.reduce((a, h) => a + (h.precip ?? 0), 0),
+    pop: max(past.map((h) => h.pop)),
+    precip: past.reduce((a, h) => a + (h.precip ?? 0), 0),
     wind: mean(slice.map((h) => h.wind)),
-    gust: max(slice.map((h) => h.gust)),
+    gust: max(past.map((h) => h.gust)),
     windDir: meanDirection(slice),
     cloud: mean(slice.map((h) => h.cloud)),
     rh: mean(slice.map((h) => h.rh)),
-    code: max(slice.map((h) => h.code)),
+    code: max(past.map((h) => h.code)),
     isDay: slice[Math.floor(slice.length / 2)].isDay,
     trackState: worst.trackState,
   }

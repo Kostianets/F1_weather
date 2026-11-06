@@ -53,7 +53,11 @@ export default function Sessions({ sessions, forecasts, tz, now, loaded }: Props
                     <WeatherIcon code={f.code} isDay={f.isDay} size={46} />
                     <div>
                       <div className="session-temp">{units.temp(f.temp)}</div>
-                      <div className="session-cond">{condition(f.code).label}</div>
+                      <div className="session-cond">
+                        {/* Past hours are still model output, not what actually happened. */}
+                        {done && 'Forecast was: '}
+                        {condition(f.code).label}
+                      </div>
                     </div>
                     <span className={`chip state-${f.trackState}`}>{f.trackState}</span>
                   </div>

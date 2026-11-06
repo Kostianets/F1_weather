@@ -64,6 +64,14 @@ describe('sessionForecast', () => {
     expect(f.trackState).toBe('wet')
   })
 
+  it('reads rain from the hours that end inside the session', () => {
+    // Hour 13 holds 12:00–13:00 rain (before the start), hour 16 holds 15:00–16:00 (overlaps the end).
+    const list = hours(T0, 24, (i) => ({ precip: i === 13 ? 5 : i === 16 ? 0.3 : 0, code: i === 13 ? 65 : 3 }))
+    const f = sessionForecast(list, session)!
+    expect(f.precip).toBeCloseTo(0.3)
+    expect(f.code).toBe(3)
+  })
+
   it('averages wind direction across north instead of pointing south', () => {
     const list = hours(T0, 24, (i) => ({ windDir: i % 2 ? 350 : 10 }))
     const dir = sessionForecast(list, session)!.windDir!
